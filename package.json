@@ -1,6 +1,6 @@
 {
   "name": "react-before-render",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Versatile before hooks for react components",
   "main": "dist/index.js",
   "scripts": {

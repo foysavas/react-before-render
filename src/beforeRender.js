@@ -1,6 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { withRouter } from 'react-router';
 
 export default function beforeRender({
   load,
@@ -11,7 +9,7 @@ export default function beforeRender({
   wrappers
 }) {
   return (WrappedComponent) => {
-    class BeforRender extends React.Component {
+    class BeforeRender extends React.Component {
       constructor(props) {
         super(props);
         this.state = { readyToRender: false };
@@ -19,7 +17,7 @@ export default function beforeRender({
 
       componentWillMount() {
         if (load) {
-          const res = load({props: this.props, context: this.context});
+          const res = load({ props: this.props, context: this.context });
           if (res && res.then) {
             res.then(() => this.setState({ readyToRender: true }));
           } else {
@@ -31,7 +29,7 @@ export default function beforeRender({
       componentWillReceiveProps(nextProps) {
         if (load && shouldReload && shouldReload(this.props, nextProps)) {
           this.setState({ readyToRender: false });
-          const res = load({props: nextProps, context: this.context});
+          const res = load({ props: nextProps, context: this.context });
           if (res && res.then) {
             res.then(() => this.setState({ readyToRender: true }));
           } else {
@@ -45,23 +43,29 @@ export default function beforeRender({
         return this.state.readyToRender ? <WrappedComponent {...this.props} /> : loader;
       }
     }
-  }
 
-  if (propTypes) {
-    BeforeRender.propTypes = propTypes;
-  }
+    BeforeRender.displayName = `beforeRender(${WrappedComponent.displayName || WrappedComponent.name})`;
 
-  if (propTypes) {
-    BeforeRender.contextTypes = contextTypes;
-  }
-
-  if (wrappers) {
-    if (Array.isArray(wrappers)) {
-      return wrappers.reverse().reduce((acc, fn) => (fn(acc), BeforeRender));
+    if (propTypes) {
+      BeforeRender.propTypes = propTypes;
     } else {
-      return wrappers(BeforeRender);
+      BeforeRender.propTypes = WrappedComponent.propTypes;
     }
-  } else {
-    return BeforRender;
-  }n
+
+    if (contextTypes) {
+      BeforeRender.contextTypes = contextTypes;
+    } else {
+      BeforeRender.contextTypes = WrappedComponent.contextTypes;
+    }
+
+    if (wrappers) {
+      if (Array.isArray(wrappers)) {
+        return wrappers.reverse().reduce((acc, fn) => (fn(acc)), BeforeRender);
+      } else {
+        return wrappers(BeforeRender);
+      }
+    } else {
+      return BeforeRender;
+    }
+  }
 }
