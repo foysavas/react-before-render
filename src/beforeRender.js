@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export default function beforeRender({
   load,
@@ -6,9 +6,10 @@ export default function beforeRender({
   shouldReload,
   propTypes,
   contextTypes,
-  wrappers
+  wrappers,
+  onRejected
 }) {
-  return (WrappedComponent) => {
+  return WrappedComponent => {
     class BeforeRender extends React.Component {
       constructor(props) {
         super(props);
@@ -31,7 +32,16 @@ export default function beforeRender({
           this.setState({ readyToRender: false });
           const res = load({ props: nextProps, context: this.context });
           if (res && res.then) {
-            res.then(() => this.setState({ readyToRender: true }));
+            res.then(
+              () => this.setState({ readyToRender: true }),
+              error => {
+                if (onRejected) {
+                  return onRejected(error);
+                } else {
+                  throw error;
+                }
+              }
+            );
           } else {
             this.setState({ readyToRender: true });
           }
@@ -39,12 +49,19 @@ export default function beforeRender({
       }
 
       render() {
-        const loader = loadingComponent ? React.createElement(loadingComponent, this.props) : null;
-        return this.state.readyToRender ? <WrappedComponent {...this.props} /> : loader;
+        const loader = loadingComponent
+          ? React.createElement(loadingComponent, this.props)
+          : null;
+        return this.state.readyToRender ? (
+          <WrappedComponent {...this.props} />
+        ) : (
+          loader
+        );
       }
     }
 
-    BeforeRender.displayName = `beforeRender(${WrappedComponent.displayName || WrappedComponent.name})`;
+    BeforeRender.displayName = `beforeRender(${WrappedComponent.displayName ||
+      WrappedComponent.name})`;
 
     if (propTypes) {
       BeforeRender.propTypes = propTypes;
@@ -60,12 +77,12 @@ export default function beforeRender({
 
     if (wrappers) {
       if (Array.isArray(wrappers)) {
-        return wrappers.reverse().reduce((acc, fn) => (fn(acc)), BeforeRender);
+        return wrappers.reverse().reduce((acc, fn) => fn(acc), BeforeRender);
       } else {
         return wrappers(BeforeRender);
       }
     } else {
       return BeforeRender;
     }
-  }
+  };
 }
