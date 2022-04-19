@@ -16,7 +16,7 @@ export default function beforeRender({
         this.state = { readyToRender: false };
       }
 
-      componentWillMount() {
+      UNSAFE_componentWillMount() {
         if (load) {
           const res = load({ props: this.props, context: this.context });
           if (res && res.then) {
@@ -27,7 +27,7 @@ export default function beforeRender({
         }
       }
 
-      componentWillReceiveProps(nextProps) {
+      UNSAFE_componentWillReceiveProps(nextProps) {
         if (load && shouldReload && shouldReload(this.props, nextProps)) {
           this.setState({ readyToRender: false });
           const res = load({ props: nextProps, context: this.context });
